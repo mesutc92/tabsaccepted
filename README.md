@@ -25,7 +25,7 @@ git checkout cursor/kap-bildirim-takibi-8a90   # PR main'e birleşene kadar
 cp config/env.example .env
 ```
 
-`.env` içinde **en az** `SMTP_PASSWORD` ve `ALERT_TO` doldurun (aşağıdaki tablo). Sonra:
+`.env` içinde **en az** `SMTP_PASSWORD` doldurun (Gmail uygulama şifresi). Alıcı varsayılanı `mesutc92@gmail.com`. Sonra:
 
 ```bash
 docker compose up -d --build
@@ -52,15 +52,15 @@ Filtreleri `src/kap_alert/filters.yaml` üzerinden değiştirip `docker compose 
 
 | Değişken | Örnek | Not |
 | --- | --- | --- |
-| `SMTP_HOST` | `smtp.office365.com` | Gmail: `smtp.gmail.com` |
+| `SMTP_HOST` | `smtp.gmail.com` | |
 | `SMTP_PORT` | `587` | STARTTLS |
-| `SMTP_USER` | hesap e-postası | |
-| `SMTP_PASSWORD` | SMTP / uygulama şifresi | Repoya koymayın |
-| `SMTP_FROM` | gönderen adres | Office 365’te genelde `SMTP_USER` ile aynı |
+| `SMTP_USER` | `mesutc92@gmail.com` | |
+| `SMTP_PASSWORD` | Gmail uygulama şifresi | Repoya koymayın |
+| `SMTP_FROM` | `mesutc92@gmail.com` | Gönderen |
 | `SMTP_STARTTLS` | `true` | |
-| `ALERT_TO` | alıcı adres | Tek alıcı |
+| `ALERT_TO` | `mesutc92@gmail.com` | Bildirimlerin gideceği kutu |
 
-Office 365’te MFA açıksa normal şifre çoğu zaman yetmez; kiracıda SMTP AUTH açık olmalı veya uygulama şifresi kullanılmalı. Gmail’de [uygulama şifresi](https://support.google.com/accounts/answer/185833) gerekir. Bu alanlar boşsa program mail atmaz, dry-run’a düşer.
+Gmail normal hesap şifresi SMTP’de çalışmaz; [uygulama şifresi](https://support.google.com/accounts/answer/185833) gerekir. Bu alanlar boşsa program mail atmaz, dry-run’a düşer.
 
 **İsteğe bağlı**
 
