@@ -1,0 +1,179 @@
+# KAP bildirim ayıklama kuralları.
+# Metinler Türkçe karakter katlaması (ş→s, ı→i, ğ→g ...) sonrası eşleşir.
+
+require_stock_code: true
+min_score: 3
+fetch_body_for_oda: true
+
+# Bu konular yüksek hacimli gürültüdür; hiç değerlendirilmez.
+skip_subjects:
+  - Pay Bazında Devre Kesici Bildirimi
+  - Test Bildirimi
+  - BISTECH Pay Piyasası Alım Satım Sistemi Duyurusu
+  - Kamuyu Aydınlatma Platformu Duyurusu
+  - Şirket Genel Bilgi Formu
+  - Likidite Sağlayıcılık Kapsamındaki İşlemler
+  - Haftalık Rapor
+  - Pay Alım Satım Bildirimi
+  - Yatırım Kuruluşu Varant - Sertifika - Senetlerine İlişkin Bildirim
+  - Pay Dışında Sermaye Piyasası Aracı İşlemlerine İlişkin Bildirim (Faiz İçeren)
+
+skip_subject_contains:
+  - test bildirimi
+  - varant
+
+# Konu başlığı tek başına yeterince güçlüyse gövde beklemeden bildir.
+always_match_subjects:
+  - Payların Geri Alınmasına İlişkin Bildirim
+  - Kar Payı İşlemlerine İlişkin Bildirim
+  - Kâr Payı İşlemlerine İlişkin Bildirim
+  - Temettü
+  - Birleşme İşlemlerine İlişkin Bildirim
+  - Devralma
+  - Pay Alım Teklifi
+
+categories:
+  temettu:
+    label: Temettü / kâr payı
+    weight: 5
+    patterns:
+      - temettu
+      - kar payi
+      - kar dagit
+      - nakit temettu
+      - bedelsiz temettu
+
+  kar_artisi:
+    label: Kâr artışı / güçlü finansal sonuç
+    weight: 4
+    patterns:
+      - kar artis
+      - net kar
+      - faaliyet kari
+      - ebitda
+      - rekor kar
+      - kar buyume
+      - kar beklenti
+      - olumlu finansal
+
+  sozlesme:
+    label: Yeni sözleşme
+    weight: 5
+    patterns:
+      - sozlesme imza
+      - sozlesme imzalan
+      - yeni sozlesme
+      - sozlesmenin imzalan
+      - satis sozles
+      - tedarik sozles
+      - lisans sozles
+      - kira sozlesmesi imza
+
+  ihale:
+    label: İhale kazanımı
+    weight: 5
+    patterns:
+      - ihale kazan
+      - ihaleyi kazan
+      - ihale sonuc
+      - yuklenici secil
+      - en avantajli teklif
+      - ihale uhdesinde
+      - sozlesmeye davet
+
+  birlesme_devralma:
+    label: Birleşme / devralma
+    weight: 5
+    patterns:
+      - birlesme
+      - devralma
+      - devralinma
+      - satin alma
+      - pay alim teklifi
+      - hisse devri
+      - bagli ortaklik pay
+      - isiraki satin
+      - kontrol degisikligi
+
+  geri_alim:
+    label: Pay geri alımı
+    weight: 4
+    patterns:
+      - geri alim
+      - paylarin geri al
+      - pay geri al
+
+  sermaye_artirimi:
+    label: Sermaye artırımı / bedelsiz
+    weight: 3
+    patterns:
+      - bedelsiz
+      - sermaye artirim
+      - bedelli sermaye
+      - kayitli sermaye tavan
+
+  kredi_notu:
+    label: Kredi notu / görünüm iyileşmesi
+    weight: 4
+    patterns:
+      - not artis
+      - not yukselt
+      - notunu yukselt
+      - gorunum pozitif
+      - gorunumun pozitif
+      - gorunumunu pozitif
+      - investment grade
+
+  yatirim_kapasite:
+    label: Yatırım / kapasite / tesis
+    weight: 3
+    patterns:
+      - uretim tesis
+      - kapasite art
+      - yeni tesis
+      - yatirim karar
+      - yatirim plan
+      - fabrika
+      - tesis cesitlendir
+      - kapasite artirim
+
+  siparis_isbirligi:
+    label: Sipariş / işbirliği / ortaklık
+    weight: 3
+    patterns:
+      - siparis
+      - isbirligi
+      - stratejik ortak
+      - ortaklik sozles
+      - protokol imza
+
+  lisans:
+    label: Lisans / ruhsat / izin
+    weight: 3
+    patterns:
+      - lisans alindi
+      - on lisans
+      - ruhsat
+      - uretim izni
+      - faaliyet izni
+
+exclude_patterns:
+  - geri alim programinin sonlandir
+  - pay geri alim programinin sonlandir
+
+veto_patterns:
+  - konkordato
+  - iflas
+  - temerrut
+  - faaliyetlerin durdurulmasi
+  - faaliyet durdur
+  - sermaye azalt
+  - idari para cezasi
+  - gorunum negatif
+  - not dusurul
+  - not indirim
+  - islemlerin durdurulmasi
+  - borsada islem gormekten
+  - kayden izleme
+  - ihtiyati tedbir
+  - haciz
