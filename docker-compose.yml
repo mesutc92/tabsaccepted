@@ -1,13 +1,16 @@
 services:
   kap-alert:
     build: .
+    container_name: kap-alert
     restart: unless-stopped
     env_file:
       - .env
     environment:
       KAP_DB_PATH: /data/kap.db
+      KAP_FILTERS_PATH: /config/filters.yaml
     volumes:
       - kap-data:/data
+      - ./src/kap_alert/filters.yaml:/config/filters.yaml:ro
 
 volumes:
   kap-data:

@@ -14,76 +14,86 @@ Bu bir tavsiye aracı değildir; KAP’ın kamuya açık bildirimlerini hızlı 
 
 Varsayılan aralık **60 saniye**dir. KAP tarafında makul bir hızdır (tur başına 1 liste isteği + yalnızca adayların gövdesi).
 
-## Hızlı başlangıç
+## Docker ile yerelde çalıştırma
+
+Docker Desktop (Windows/macOS) veya Docker Engine + Compose yeterli. Konteynerin `www.kap.org.tr` ve SMTP sunucusuna çıkışı olmalı.
+
+```bash
+git clone https://github.com/mesutc92/tabsaccepted.git
+cd tabsaccepted
+git checkout cursor/kap-bildirim-takibi-8a90   # PR main'e birleşene kadar
+cp config/env.example .env
+```
+
+`.env` içinde **en az** `SMTP_PASSWORD` ve `ALERT_TO` doldurun (aşağıdaki tablo). Sonra:
+
+```bash
+docker compose up -d --build
+docker compose logs -f
+```
+
+İlk denemede mail atmadan log izlemek için `.env` içinde `KAP_DRY_RUN=true` yapın, sonra `false` çekip `docker compose up -d` tekrarlayın.
+
+Tek tur (mail yok):
+
+```bash
+docker compose run --rm kap-alert kap-alert once --dry-run --notify-on-start
+```
+
+Durdurma: `docker compose down` (görülen bildirimler volume’da kalır). Sıfırdan başlamak: `docker compose down -v`.
+
+Filtreleri `src/kap_alert/filters.yaml` üzerinden değiştirip `docker compose restart` yeterli; imajı yeniden derlemeniz gerekmez.
+
+## Ayarlar (`.env`)
+
+Şablon: `config/env.example` → proje kökünde `.env`. Docker Compose bu dosyayı okur.
+
+**Mail için zorunlu**
+
+| Değişken | Örnek | Not |
+| --- | --- | --- |
+| `SMTP_HOST` | `smtp.office365.com` | Gmail: `smtp.gmail.com` |
+| `SMTP_PORT` | `587` | STARTTLS |
+| `SMTP_USER` | hesap e-postası | |
+| `SMTP_PASSWORD` | SMTP / uygulama şifresi | Repoya koymayın |
+| `SMTP_FROM` | gönderen adres | Office 365’te genelde `SMTP_USER` ile aynı |
+| `SMTP_STARTTLS` | `true` | |
+| `ALERT_TO` | alıcı adres | Tek alıcı |
+
+Office 365’te MFA açıksa normal şifre çoğu zaman yetmez; kiracıda SMTP AUTH açık olmalı veya uygulama şifresi kullanılmalı. Gmail’de [uygulama şifresi](https://support.google.com/accounts/answer/185833) gerekir. Bu alanlar boşsa program mail atmaz, dry-run’a düşer.
+
+**İsteğe bağlı**
+
+| Değişken | Varsayılan | Anlamı |
+| --- | --- | --- |
+| `KAP_POLL_INTERVAL` | `60` | Saniye. `300` = 5 dakika |
+| `KAP_LOOKBACK_DAYS` | `1` | Liste penceresi (dün+bugün) |
+| `KAP_DRY_RUN` | `false` | `true`: mail yok, log var |
+| `KAP_NOTIFY_ON_START` | `false` | İlk çalışmada listedekileri de bildir |
+| `KAP_BACKFILL_MINUTES` | `0` | İlk çalışmada yalnızca son N dakikayı bildir |
+| `KAP_FETCH_BODY` | `true` | Özel durum gövdesini oku |
+
+## Python ile (Docker olmadan)
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 cp config/env.example .env
-# .env içinde SMTP ve ALERT_TO alanlarını doldurun
-```
-
-Tek seferlik deneme (e-posta yok, konsola yazar):
-
-```bash
-KAP_DRY_RUN=1 python -m kap_alert once --notify-on-start
-```
-
-Sürekli izleme (her dakika):
-
-```bash
 python -m kap_alert watch --interval 60
 ```
 
-Beş dakikada bir:
-
-```bash
-python -m kap_alert watch --interval 300
-```
-
-İlk çalışmada geçmişi basmamak için mevcut bildirimler tohumlanır ve e-posta gitmez. Son 30 dakikayı da görmek isterseniz:
-
-```bash
-python -m kap_alert watch --backfill-minutes 30
-```
-
-## E-posta ayarı
-
-`.env` örneği (`config/env.example`):
-
-| Değişken | Açıklama |
-| --- | --- |
-| `SMTP_HOST` | Örn. `smtp.office365.com` veya `smtp.gmail.com` |
-| `SMTP_PORT` | Genelde `587` |
-| `SMTP_USER` / `SMTP_PASSWORD` | SMTP kimliği |
-| `SMTP_FROM` | Gönderen adres |
-| `ALERT_TO` | Bildirimlerin gideceği adres |
-| `KAP_POLL_INTERVAL` | Saniye (60 veya 300) |
-
-Office 365 / Google’da uygulama şifresi veya SMTP relay gerekebilir. SMTP tanımlı değilse program otomatik dry-run’a düşer.
+Tek seferlik deneme: `KAP_DRY_RUN=1 python -m kap_alert once --notify-on-start`
 
 ## Filtreleri değiştirme
 
-Kurallar `src/kap_alert/filters.yaml` içindedir. Kendi kopyanızı `KAP_FILTERS_PATH` ile verebilirsiniz.
+Kurallar `src/kap_alert/filters.yaml` içindedir.
 
 - `skip_subjects`: hiç bakılmayan konular
 - `always_match_subjects`: konu başlığı yeter, hemen bildir
 - `categories.*.patterns`: özet + gövde içinde aranan ifadeler (Türkçe karakter katlamalı)
 - `veto_patterns`: iflas, konkordato, not düşürme gibi olumsuzlar
 - `min_score`: eşik (varsayılan 3)
-
-Belirli hisselerle sınırlamak isterseniz aynı dosyaya kendi kelimelerinizi eklemeniz yeter; ticker listesi ileride eklenebilir.
-
-## Docker
-
-```bash
-cp config/env.example .env
-docker compose up -d --build
-docker compose logs -f
-```
-
-Veritabanı (`seen` bildirimler) volume’da tutulur; yeniden başlatınca aynı KAP kaydı tekrar mail gitmez.
 
 ## systemd
 
