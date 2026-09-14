@@ -1,0 +1,13 @@
+services:
+  kap-alert:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      KAP_DB_PATH: /data/kap.db
+    volumes:
+      - kap-data:/data
+
+volumes:
+  kap-data:

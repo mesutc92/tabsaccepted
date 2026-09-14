@@ -1,0 +1,15 @@
+[Unit]
+Description=KAP Borsa İstanbul bildirim tarayıcı
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/kap-alert
+EnvironmentFile=/opt/kap-alert/.env
+ExecStart=/opt/kap-alert/.venv/bin/kap-alert watch
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
